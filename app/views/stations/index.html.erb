@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+       "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  	<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<title>Subway Schedule</title>
+  	<%= stylesheet_link_tag "style"%>
+	<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+	<script type="text/javascript">
+		var map;
+		var infowindow;
+		var request;
+		
+		function user_marker(pos){
+			var info_string = "Station Name: <%= @closest_station.stop_name %> <br/>Distance: <%= @closest_station.distance.to_f.round(2)%> miles";
+	  		var user_img = new google.maps.MarkerImage("http://www.google.com/intl/en_us/mapfiles/ms/micons/blue-dot.png");
+  			var marker = new google.maps.Marker({
+  				position: pos,
+  				map: map,
+  				icon: user_img
+  			});
+  			google.maps.event.addListener(marker, 'click', function() {
+				infowindow.setContent(info_string);	
+  				infowindow.open(map,marker);
+			});
+  		}
+		
+		function station_marker(pos, img, id, name){			
+			var marker = new google.maps.Marker({
+					position: pos,
+					map: map,
+					icon: img
+				});
+			google.maps.event.addListener(marker, 'click', function() {			
+					infowindow.setContent(name);
+					infowindow.open(map, marker);
+					
+					//Request for Station schedule			
+					request = new XMLHttpRequest();
+        			var url = "mapper/station_schedule/"+ id +".json";
+       				request.open("GET",url,true);
+        			request.onreadystatechange = processrequest;
+        			request.send(null);
+			});
+		}
+		
+		function processrequest(){
+			if(request.readyState == 4 && request.status == 200 ){
+				var parsed = JSON.parse(request.responseText);
+				var string = "<table><tr><th>Direction</th><th>Line</th><th>Type</th><th>Time Remaining</th>"
+				for (var x in parsed){
+					var line = parsed[x]['Line'];
+					var infotype = parsed[x]['InformationType'];
+					var direction = parsed[x]['direction'];
+					var time = parsed[x]['TimeRemaining'];
+					if(direction != null){
+						string += "<tr><td>"+direction+"</td><td>"+line+"</td><td>"+infotype+"</td><td>"+time+"</td></tr>";
+					}
+				}
+				string += "</table>";
+				document.getElementById("station_schedule").innerHTML = string;
+			}
+		}
+		
+		function initialize() {
+			var station_image = new google.maps.MarkerImage("images/mbta_logo.gif");
+			var user_latlng = new google.maps.LatLng(<%= @user_location.lat%>, <%= @user_location.lng%>);
+			var myOptions = {
+    				zoom:13,
+    				center: user_latlng,
+    				mapTypeId: google.maps.MapTypeId.ROADMAP
+			};
+			infowindow = new google.maps.InfoWindow();
+			map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);	
+			user_marker(user_latlng);
+			var sation_latlng;
+			
+			<% @all_stations.each do |station|%>
+				station_latlng = new google.maps.LatLng(<%= station.stop_lat%>, <%= station.stop_lon%>);
+				station_marker(station_latlng, station_image, "<%= station.stop_id%>", "<%= station.stop_name%>");
+			<%end%>
+			
+		}
+	
+	</script>
+</head>
+<body onload="initialize()">
+	
+	<div id="head">
+		<h3>MBTA Subway Schedules</h3>	
+	</div>
+	<div id="map_wrap"><div id="map_canvas"></div></div>
+	<div id="station_schedule"></div>
+</body>
+</html>

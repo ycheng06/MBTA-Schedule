@@ -1,0 +1,31 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  Line: MyString
+  PlatformKey: MyString
+  PlatformName: MyString
+  StationName: MyString
+  PlatformOrder: 1
+  StartOfLine: false
+  EndOfLine: false
+  Branch: MyString
+  Direction: MyString
+  stop_id: MyString
+  stop_name: MyString
+  stop_lat: 9.99
+  stop_lon: 9.99
+
+two:
+  Line: MyString
+  PlatformKey: MyString
+  PlatformName: MyString
+  StationName: MyString
+  PlatformOrder: 1
+  StartOfLine: false
+  EndOfLine: false
+  Branch: MyString
+  Direction: MyString
+  stop_id: MyString
+  stop_name: MyString
+  stop_lat: 9.99
+  stop_lon: 9.99
